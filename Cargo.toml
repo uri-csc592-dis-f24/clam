@@ -2,6 +2,7 @@
 members = [
     "crates/abd-clam",
     "crates/distances",
+    "crates/shell",
     "crates/symagen",
     "crates/results/chaoda",
     "crates/results/cakes",
