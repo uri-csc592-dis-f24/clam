@@ -6,6 +6,7 @@ members = [
     "crates/results/chaoda",
     "crates/results/cakes",
     "crates/results/rite-solutions",
+    "crates/results/shell",
     "pypi/distances",
     "pypi/results/cakes",
 ]
