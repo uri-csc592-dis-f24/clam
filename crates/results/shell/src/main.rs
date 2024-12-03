@@ -3,6 +3,26 @@
 use clap::Parser;
 use std::path::PathBuf;
 
+pub struct Shell {
+    data_dir: PathBuf,
+    out_dir: PathBuf,
+    num_epochs: usize,
+    min_depth: usize,
+    model: PathBuf,
+    seed: u64,
+}
+
+impl Shell {
+    pub fn print(&self) {
+        println!("Reading datasets from: {:?}", self.data_dir);
+        println!("Saving results to: {:?}", self.out_dir);
+        println!("Training model for {} epochs", self.num_epochs);
+        println!("Minimum depth of clusters: {}", self.min_depth);
+        println!("Model path: {:?}", self.model);
+        println!("Seed: {}", self.seed);
+    }
+}
+
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
@@ -21,12 +41,32 @@ struct Args {
     /// Number of epochs to train the model, if creating a new model
     #[arg(short('m'), long, default_value="10")]
     num_epochs: usize,
+
+    /// Minimum depth of the clusters used for making graphs
+    #[arg(short('d'), long, default_value="4")]
+    min_depth: usize,
 }
 
 fn main() -> Result<(), String> {
     let args = Args::parse();
 
+    // Build the shell model
+    let shell = build_shell(args)?;
+
+    // Train the model
+
+    // Save the model
+    shell.print();
+
+    // Test the model
+
+    Ok(())
+}
+
+/// Build a Shell object from the provided arguments
+fn build_shell(args: Args) -> Result<Shell, String> {
     let num_epochs = args.num_epochs;
+    let min_depth = args.min_depth;
 
     // Standardize the data directory
     let data_dir = standardize_data_dir(args.data_dir)?;
@@ -40,9 +80,14 @@ fn main() -> Result<(), String> {
     // Set a seed for tree generation
     let seed = 1729;
 
-    print_parameters(&data_dir, &out_dir, num_epochs, model, seed);
-
-    Ok(())
+    Ok(Shell {
+        data_dir,
+        out_dir,
+        num_epochs,
+        min_depth,
+        model,
+        seed,
+    })
 }
 
 fn standardize_data_dir(data_dir: PathBuf) -> Result<PathBuf, String> {
@@ -83,12 +128,4 @@ fn get_model(model_path: Option<PathBuf>) -> Result<PathBuf, String> {
             Ok(model_path)
         }
     }
-}
-
-fn print_parameters(data_dir: &PathBuf, out_dir: &PathBuf, num_epochs: usize, model: PathBuf, seed: u64) {
-    println!("Reading datasets from: {data_dir:?}");
-    println!("Saving results to: {out_dir:?}");
-    println!("Training model for {num_epochs} epochs");
-    println!("Model path: {model:?}");
-    println!("Seed: {seed}");
 }
