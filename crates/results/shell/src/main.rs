@@ -1,3 +1,5 @@
+//Ignore unused variables for now
+#![allow(unused_variables)]
 #![doc = include_str!("../README.md")]
 
 use clap::Parser;
@@ -13,6 +15,31 @@ pub struct Shell {
 }
 
 impl Shell {
+    /// Create a new Shell object from the provided arguments
+    pub fn new(args: Args, seed: u64) -> Result<Self, String> {
+        let num_epochs = args.epochs;
+        let min_depth = args.min_depth;
+
+        // Standardize the data directory
+        let data_dir = standardize_data_dir(args.data_dir)?;
+
+        // Standardize the output directory. If none provided, default to "results"
+        let out_dir = standardize_output_dir(args.out_dir.unwrap_or_else(|| PathBuf::from("results")))?;
+
+        // Get the model to use
+        let model = get_model(args.model)?;
+
+        Ok(Self {
+            data_dir,
+            out_dir,
+            num_epochs,
+            min_depth,
+            model,
+            seed,
+        })
+    }
+
+    /// Print the properties of the Shell object
     pub fn print(&self) {
         println!("Reading datasets from: {:?}", self.data_dir);
         println!("Saving results to: {:?}", self.out_dir);
@@ -21,11 +48,37 @@ impl Shell {
         println!("Model path: {:?}", self.model);
         println!("Seed: {}", self.seed);
     }
+
+    /// Write the trained model to disk
+    pub fn write_to_disk(&self) {
+        let todo = "Serialize the model and write it to disk";
+
+        println!("Writing model to {:?}", self.model);
+    }
+
+    /// Train the model
+    pub fn train(&self) {
+        let todo = "Train the model";
+        
+        for epoch in 0..self.num_epochs {
+            println!("Training epoch {}/{}", epoch + 1, self.num_epochs);
+            std::thread::sleep(std::time::Duration::from_secs(1));
+        }
+    }
+
+    /// Test the model
+    pub fn test(&self) {
+        let todo = "Test the model";
+
+        println!("Testing model...");
+        std::thread::sleep(std::time::Duration::from_secs(5));
+        println!("ROC AUC: 0.95");
+    }
 }
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
-struct Args {
+pub struct Args {
     /// Directory containing the datasets
     #[arg(short('i'), long)]
     data_dir: PathBuf,
@@ -40,7 +93,7 @@ struct Args {
 
     /// Number of epochs to train the model, if creating a new model
     #[arg(short('m'), long, default_value="10")]
-    num_epochs: usize,
+    epochs: usize,
 
     /// Minimum depth of the clusters used for making graphs
     #[arg(short('d'), long, default_value="4")]
@@ -50,44 +103,19 @@ struct Args {
 fn main() -> Result<(), String> {
     let args = Args::parse();
 
-    // Build the shell model
-    let shell = build_shell(args)?;
+    // Build the shell model using provided arguments
+    let shell = Shell::new(args, 1729)?;
 
     // Train the model
+    shell.train();
 
     // Save the model
-    shell.print();
+    shell.write_to_disk();
 
     // Test the model
+    shell.test();
 
     Ok(())
-}
-
-/// Build a Shell object from the provided arguments
-fn build_shell(args: Args) -> Result<Shell, String> {
-    let num_epochs = args.num_epochs;
-    let min_depth = args.min_depth;
-
-    // Standardize the data directory
-    let data_dir = standardize_data_dir(args.data_dir)?;
-
-    // Standardize the output directory. If none provided, default to "results"
-    let out_dir = standardize_output_dir(args.out_dir.unwrap_or_else(|| PathBuf::from("results")))?;
-
-    // Get the model to use
-    let model = get_model(args.model)?;
-
-    // Set a seed for tree generation
-    let seed = 1729;
-
-    Ok(Shell {
-        data_dir,
-        out_dir,
-        num_epochs,
-        min_depth,
-        model,
-        seed,
-    })
 }
 
 fn standardize_data_dir(data_dir: PathBuf) -> Result<PathBuf, String> {
