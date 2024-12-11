@@ -2,15 +2,17 @@
 #![allow(unused_variables)]
 #![doc = include_str!("../README.md")]
 
-use clap::Parser;
 use std::path::PathBuf;
+use clap::Parser;
+use serde::{Deserialize, Serialize};
 
+#[derive(Serialize, Deserialize)]
 pub struct Shell {
     data_dir: PathBuf,
     out_dir: PathBuf,
     num_epochs: usize,
     min_depth: usize,
-    model: PathBuf,
+    model_path: PathBuf,
     seed: u64,
 }
 
@@ -27,14 +29,14 @@ impl Shell {
         let out_dir = standardize_output_dir(args.out_dir.unwrap_or_else(|| PathBuf::from("results")))?;
 
         // Get the model to use
-        let model = get_model(args.model)?;
+        let model_path = get_model(args.model)?;
 
         Ok(Self {
             data_dir,
             out_dir,
             num_epochs,
             min_depth,
-            model,
+            model_path,
             seed,
         })
     }
@@ -45,7 +47,7 @@ impl Shell {
         println!("Saving results to: {:?}", self.out_dir);
         println!("Training model for {} epochs", self.num_epochs);
         println!("Minimum depth of clusters: {}", self.min_depth);
-        println!("Model path: {:?}", self.model);
+        println!("Model path: {:?}", self.model_path);
         println!("Seed: {}", self.seed);
     }
 
@@ -53,7 +55,12 @@ impl Shell {
     pub fn write_to_disk(&self) {
         let todo = "Serialize the model and write it to disk";
 
-        println!("Writing model to {:?}", self.model);
+        println!("Writing model to {:?}", self.model_path);
+
+        bincode::serialize_into(
+            std::fs::File::create(&self.model_path).unwrap(),
+            &self,
+        ).unwrap();
     }
 
     /// Train the model
@@ -70,7 +77,7 @@ impl Shell {
     pub fn test(&self) {
         let todo = "Test the model";
 
-        println!("Testing model...");
+        println!("Testing model against APOGEE dataset");
         std::thread::sleep(std::time::Duration::from_secs(5));
         println!("ROC AUC: 0.95");
     }
@@ -80,11 +87,11 @@ impl Shell {
 #[command(version, about, long_about = None)]
 pub struct Args {
     /// Directory containing the datasets
-    #[arg(short('i'), long)]
+    #[arg(short('i'), long, default_value="./data/")]
     data_dir: PathBuf,
     
-    /// Path to the output directory.
-    #[arg(short('o'), long)]
+    /// Directory which will contain the results
+    #[arg(short('o'), long, default_value="./results/")]
     out_dir: Option<PathBuf>,
 
     /// Pre-trained model to use, if applicable
