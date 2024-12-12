@@ -87,7 +87,7 @@ impl Shell {
 #[command(version, about, long_about = None)]
 pub struct Args {
     /// Directory containing the datasets
-    #[arg(short('i'), long, default_value="./data/")]
+    #[arg(short('i'), long)]
     data_dir: PathBuf,
     
     /// Directory which will contain the results
@@ -99,7 +99,7 @@ pub struct Args {
     model: Option<PathBuf>,
 
     /// Number of epochs to train the model, if creating a new model
-    #[arg(short('m'), long, default_value="10")]
+    #[arg(short('e'), long, default_value="10")]
     epochs: usize,
 
     /// Minimum depth of the clusters used for making graphs
